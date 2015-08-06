@@ -37,7 +37,7 @@ public interface PCollection<E> extends Iterable<E> {
      * @return the empty instance of this collection type
      * @see Collection#clear()
      */
-    <T> PCollection<T> empty();
+    <T> PCollection<T> clear();
 
     /**
      * Returns the size of this collection.

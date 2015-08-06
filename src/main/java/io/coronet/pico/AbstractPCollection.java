@@ -21,11 +21,7 @@ public abstract class AbstractPCollection<E> implements PCollection<E> {
 
         for (;;) {
             E e = iter.next();
-            if (e == this) {
-                builder.append("(this collection)");
-            } else {
-                builder.append(e);
-            }
+            builder.append(e);
 
             if (!iter.hasNext()) {
                 return builder.append(']').toString();

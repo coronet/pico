@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 public interface PList<E> extends PCollection<E> {
 
     @Override
-    <T> PList<T> empty();
+    <T> PList<T> clear();
 
     /**
      * Gets the element at the given index.
@@ -107,10 +107,11 @@ public interface PList<E> extends PCollection<E> {
         return result;
     }
 
-    default PList<E> subList(int fromIndex, int toIndex) {
-        PList<E> result = empty();
-        for (int i = fromIndex; i < toIndex; ++i) {
-            result.add(get(i));
+    @Override
+    default PList<E> addAll(PCollection<? extends E> c) {
+        PList<E> result = this;
+        for (E e : c) {
+            result = result.add(e);
         }
         return result;
     }
