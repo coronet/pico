@@ -4,6 +4,7 @@ import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -130,6 +131,11 @@ public interface PCollection<E> extends Iterable<E> {
             result = result.add(e);
         }
         return result;
+    }
+
+    @Override
+    default Spliterator<E> spliterator() {
+        return Spliterators.spliterator(iterator(), size(), 0);
     }
 
     /**
