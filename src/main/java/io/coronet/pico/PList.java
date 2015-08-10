@@ -1,13 +1,9 @@
 package io.coronet.pico;
 
-import java.util.AbstractList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Spliterator;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.Spliterators;
 
 /**
  * A persistent list - an immutable version of {@code java.util.List}. Mutator
@@ -15,8 +11,35 @@ import java.util.stream.Stream;
  */
 public interface PList<E> extends PCollection<E> {
 
-    @Override
-    <T> PList<T> clear();
+    /**
+     * Creates a new list whose {@link #add(Object)} method appends elements
+     * to the list.
+     *
+     * @return a new, empty list that can be appended to
+     */
+    public static <E> PList<E> appendable() {
+        return PQueue.empty();
+    }
+
+    /**
+     * Gets the index of the first occurrence of the given object in this list,
+     * or {@code -1} if the element is not found.
+     *
+     * @param o the object to search for
+     * @return the first index of the object, or -1 if not found
+     * @see List#indexOf(Object)
+     */
+    int indexOf(Object o);
+
+    /**
+     * Gets the index of the last occurrence of the given object in this list,
+     * or {@code -1} if the element is not found.
+     *
+     * @param o the object to search for
+     * @return the last index of the object, or -1 if not found
+     * @see List#lastIndexOf(Object)
+     */
+    int lastIndexOf(Object o);
 
     /**
      * Gets the element at the given index.
@@ -28,11 +51,76 @@ public interface PList<E> extends PCollection<E> {
      */
     E get(int index);
 
+    /**
+     * Gets the first element in this list.
+     *
+     * @return the first element in this list
+     * @throws IndexOutOfBoundsException if this list is empty
+     */
+    default E first() {
+        return get(0);
+    }
+
+    /**
+     * Gets the first {@code n} elements in this list.
+     *
+     * @param n the number of elements to get
+     * @return a list containing only the first n elements
+     * @throws IndexOutOfBoundsException if {@code n < 0} or {@code n >= size()}
+     */
+    PList<E> first(int n);
+
+    /**
+     * Returns the last element in this list.
+     *
+     * @return the last element in this list
+     * @throws IndexOutOfBoundsException if this list is empty
+     */
+    default E last() {
+        return get(size() - 1);
+    }
+
+    /**
+     * Returns the last {@code n} elements in this list.
+     *
+     * @param n the number of elements to get
+     * @return a list containing on the last n elements
+     * @throws IndexOutOfBoundsException if {@code n < 0} or {@code n >= size()}
+     */
+    PList<E> last(int n);
+
+    /**
+     * Adds an element to this list. The position where the element will be
+     * inserted is implementation-dependent. A {@link PStack} inserts elements
+     * at the head of the list, a {@link PQueue} inserts elements at the tail.
+     */
     @Override
     PList<E> add(E e);
 
     /**
-     * Sets the element at the given index, returning a new list with the
+     * {@inheritDoc}
+     * <p>
+     * The elements will be added in the order they are returned by the
+     * collection's iterator. The position that they will be inserted
+     * at is implementation-dependent (typically congruent with the behavior
+     * of {@link #add(Object)}).
+     */
+    @Override
+    PList<E> addAll(Collection<? extends E> c);
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The elements will be added in the order they are returned by the
+     * collection's iterator. The position that they will be inserted
+     * at is implementation-dependent (typically congruent with the behavior
+     * of {@link #add(Object)}).
+     */
+    @Override
+    PList<E> addAll(PCollection<? extends E> c);
+
+    /**
+     * "Sets" the element at the given index, returning a new list with the
      * value at the given index replaced.
      *
      * @param index the index to change
@@ -43,150 +131,45 @@ public interface PList<E> extends PCollection<E> {
      */
     PList<E> set(int index, E e);
 
-    default int indexOf(Object o) {
-        if (o == null) {
-            for (int i = 0; i < size(); ++i) {
-                if (get(i) == null) {
-                    return i;
-                }
-            }
-        } else {
-            for (int i = 0; i < size(); ++i) {
-                if (o.equals(get(i))) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
+    /**
+     * "Removes" a single element from the head of this list, returning a new
+     * list containing only the remaining elements. It's precisely equivalent
+     * to calling {@code list.last(list.size() - 1)}, just a little more
+     * convenient.
+     *
+     * @return a new list containing the remaining elements
+     * @throws IndexOutOfBoundsException if the list is empty
+     * @see #last(int)
+     */
+    PList<E> remove();
 
-    default int lastIndexOf(Object o) {
-        if (o == null) {
-            for (int i = size() - 1; i >= 0; --i) {
-                if (get(i) == null) {
-                    return i;
-                }
-            }
-        } else {
-            for (int i = size() - 1; i >= 0; --i) {
-                if (o.equals(get(i))) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
+    /**
+     * "Removes" {@code n} elements from the head of this list, returning a new
+     * list containing only the remaining elements. It's precisely equivalent
+     * to calling {@code list.last(list.size() - n)}, just a little more
+     * convenient.
+     *
+     * @param n the number of elements to remove
+     * @return a new list containing the remaining elements
+     * @throws IndexOutOfBoundsException if {@code n < 0} or {@code n >= size()}
+     * @see #last(int)
+     */
+    PList<E> remove(int n);
 
     @Override
-    default Iterator<E> iterator() {
-        return new Iterator<E>() {
+    List<E> asJavaCollection();
 
-            private int index;
-
-            @Override
-            public boolean hasNext() {
-                return index < size();
-            }
-
-            @Override
-            public E next() {
-                if (index >= size()) {
-                    throw new NoSuchElementException();
-                }
-                return get(index++);
-            }
-        };
-    }
-
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The {@code Spliterator} will additionally be
+     * {@linkplain Spliterator#ORDERED ordered}.
+     */
     @Override
-    default PList<E> addAll(Collection<? extends E> c) {
-        PList<E> result = this;
-        for (E e : c) {
-            result = result.add(e);
-        }
-        return result;
-    }
-
-    @Override
-    default PList<E> addAll(PCollection<? extends E> c) {
-        PList<E> result = this;
-        for (E e : c) {
-            result = result.add(e);
-        }
-        return result;
-    }
-
-    @Override
-    default List<E> asJavaCollection() {
-        return new ListAdapter<>(this);
-    }
-}
-
-final class ListAdapter<E> extends AbstractList<E> {
-
-    private final PList<E> wrapped;
-
-    public ListAdapter(PList<E> wrapped) {
-        this.wrapped = wrapped;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return wrapped.isEmpty();
-    }
-
-    @Override
-    public int size() {
-        return wrapped.size();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return wrapped.contains(o);
-    }
-
-    @Override
-    public E get(int index) {
-        return wrapped.get(index);
-    }
-
-    @Override
-    public int indexOf(Object o) {
-        return wrapped.indexOf(o);
-    }
-
-    @Override
-    public int lastIndexOf(Object o) {
-        return wrapped.lastIndexOf(o);
-    }
-
-    @Override
-    public Iterator<E> iterator() {
-        return wrapped.iterator();
-    }
-
-    @Override
-    public void forEach(Consumer<? super E> action) {
-        wrapped.forEach(action);
-    }
-
-    @Override
-    public Spliterator<E> spliterator() {
-        return wrapped.spliterator();
-    }
-
-    @Override
-    public Stream<E> stream() {
-        return wrapped.stream();
-    }
-
-    @Override
-    public Stream<E> parallelStream() {
-        return wrapped.parallelStream();
-    }
-
-    @Override
-    public String toString() {
-        return wrapped.toString();
+    default Spliterator<E> spliterator() {
+        return Spliterators.spliterator(
+                iterator(),
+                size(),
+                Spliterator.IMMUTABLE | Spliterator.ORDERED);
     }
 }

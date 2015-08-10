@@ -1,15 +1,102 @@
 package io.coronet.pico;
 
+import java.util.AbstractList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
- * An abstract implementation of the {@code PList} interface that provides
- * implementations of {@code toString}, {@code hashCode}, and {@code equals}.
+ * An abstract implementation of the {@code PList} interface.
  *
  * @see java.util.AbstractList
  */
-public abstract class AbstractPList<E> extends AbstractPCollection<E>
+public abstract class AbstractPList<E, This extends AbstractPList<E, This>>
+        extends AbstractPCollection<E, This>
         implements PList<E> {
+
+    @Override
+    public abstract int size();
+
+    @Override
+    public int indexOf(Object o) {
+        return indexOf(o, 0, size(), 1);
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
+        return indexOf(o, size() - 1, -1, -1);
+    }
+
+    private int indexOf(Object o, int first, int last, int step) {
+        if (o == null) {
+            for (int i = first; i != last; i += step) {
+                if (get(i) == null) {
+                    return i;
+                }
+            }
+        } else {
+            for (int i = first; i != last; i += step) {
+                if (o.equals(get(i))) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public abstract E get(int index);
+
+    @Override
+    public abstract This first(int n);
+
+    @Override
+    public abstract This last(int n);
+
+    @Override
+    public abstract This add(E e);
+
+    @Override
+    public abstract This set(int index, E e);
+
+    @Override
+    public This remove() {
+        return last(size() - 1);
+    }
+
+    @Override
+    public This remove(int n) {
+        return last(size() - n);
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new Iterator<E>() {
+
+            private int index;
+
+            @Override
+            public boolean hasNext() {
+                return index < size();
+            }
+
+            @Override
+            public E next() {
+                if (index >= size()) {
+                    throw new NoSuchElementException();
+                }
+                return get(index++);
+            }
+        };
+    }
+
+    @Override
+    public List<E> asJavaCollection() {
+        return new ListAdapter<>(this);
+    }
 
     @Override
     public int hashCode() {
@@ -49,5 +136,74 @@ public abstract class AbstractPList<E> extends AbstractPCollection<E>
         }
 
         return !(e1.hasNext() || e2.hasNext());
+    }
+
+    private static final class ListAdapter<E> extends AbstractList<E> {
+
+        private final PList<E> wrapped;
+
+        public ListAdapter(PList<E> wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return wrapped.isEmpty();
+        }
+
+        @Override
+        public int size() {
+            return wrapped.size();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return wrapped.contains(o);
+        }
+
+        @Override
+        public E get(int index) {
+            return wrapped.get(index);
+        }
+
+        @Override
+        public int indexOf(Object o) {
+            return wrapped.indexOf(o);
+        }
+
+        @Override
+        public int lastIndexOf(Object o) {
+            return wrapped.lastIndexOf(o);
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            return wrapped.iterator();
+        }
+
+        @Override
+        public void forEach(Consumer<? super E> action) {
+            wrapped.forEach(action);
+        }
+
+        @Override
+        public Spliterator<E> spliterator() {
+            return wrapped.spliterator();
+        }
+
+        @Override
+        public Stream<E> stream() {
+            return wrapped.stream();
+        }
+
+        @Override
+        public Stream<E> parallelStream() {
+            return wrapped.parallelStream();
+        }
+
+        @Override
+        public String toString() {
+            return wrapped.toString();
+        }
     }
 }

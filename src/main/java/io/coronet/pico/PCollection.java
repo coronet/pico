@@ -1,11 +1,8 @@
 package io.coronet.pico;
 
-import java.util.AbstractCollection;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -17,12 +14,8 @@ import java.util.stream.StreamSupport;
 public interface PCollection<E> extends Iterable<E> {
 
     /**
-     * Checks if this collection is empty.
-     * <p>
-     * The default implementation checks whether the size of this collection
-     * is zero. Override me if calculating the size of your collection is
-     * more expensive than some other method of determining whether it's
-     * empty.
+     * Checks if this collection is empty. The default implementation checks
+     * whether the size of this collection is zero.
      *
      * @return true if this collection is empty, false otherwise
      * @see Collection#isEmpty()
@@ -30,14 +23,6 @@ public interface PCollection<E> extends Iterable<E> {
     default boolean isEmpty() {
         return (size() == 0);
     }
-
-    /**
-     * Returns the empty instance of this collection type.
-     *
-     * @return the empty instance of this collection type
-     * @see Collection#clear()
-     */
-    <T> PCollection<T> clear();
 
     /**
      * Returns the size of this collection.
@@ -49,39 +34,41 @@ public interface PCollection<E> extends Iterable<E> {
 
     /**
      * Checks if this collection contains the given element.
-     * <p>
-     * The default implementation iterates through the collection looking
-     * for a match. Override me if there's a more efficient way to tell if
-     * this collection contains a given element.
      *
      * @param o the object to look for
      * @return true if this collection contains the object
      * @see Collection#contains(Object)
      */
-    default boolean contains(Object o) {
-        if (o == null) {
-            for (Object o2 : this) {
-                if (o2 == null) {
-                    return true;
-                }
-            }
-        } else {
-            for (Object o2 : this) {
-                if (o.equals(o2)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+    boolean contains(Object o);
 
     /**
-     * Adds an element to this collection, returning a new collection
+     * Checks if this collection contains <em>all</em> of the given elements.
+     *
+     * @param c the collection of elements
+     * @return true if this collection contains all elements, false otherwise
+     * @throws NullPointerException if {@code c} is null
+     * @see Collection#containsAll(Collection)
+     */
+    boolean containsAll(Collection<?> c);
+
+    /**
+     * Checks if this collection contains <em>all</em> of the given elements.
+     *
+     * @param c the collection of elements
+     * @return true if this collection contains all elements, false otherwise
+     * @throws NullPointerException if {@code c} is null
+     * @see Collection#containsAll(Collection)
+     */
+    boolean containsAll(PCollection<?> c);
+
+    /**
+     * "Adds" an element to this collection, returning a new collection
      * containing all the elements of this collection and the additional
      * element.
      * <p>
      * Depending on the semantics of the collection, adding an element may be
-     * a no-op, in which case this method can and should return this object.
+     * a no-op, in which case this method can and should return the object
+     * you called it on.
      *
      * @param e the element to add
      * @return a new collection containing the new element
@@ -90,52 +77,47 @@ public interface PCollection<E> extends Iterable<E> {
     PCollection<E> add(E e);
 
     /**
-     * Adds all of the given elements to this collection, returning a new
+     * "Adds" all of the given elements to this collection, returning a new
      * collection containing all the elements from both collection and the
      * other.
-     * <p>
-     * This implementation simply calls {@link #add(Object)} in a loop. Override
-     * it if there's a more efficient way to add multiple elements to your
-     * collection at once (ie without allocating all those intermediate
-     * collections).
      *
      * @param c the collection of elements to add
      * @return the union of this collection and the given collection of elements
      * @see Collection#addAll(java.util.Collection)
      */
-    default PCollection<E> addAll(Collection<? extends E> c) {
-        PCollection<E> result = this;
-        for (E e : c) {
-            result = result.add(e);
-        }
-        return result;
-    }
+    PCollection<E> addAll(Collection<? extends E> c);
 
     /**
-     * Adds all of the given elements to this collection, returning a new
+     * "Adds" all of the given elements to this collection, returning a new
      * collection containing all the elements from both collection and the
      * other.
-     * <p>
-     * This implementation simply calls {@link #add(Object)} in a loop. Override
-     * it if there's a more efficient way to add multiple elements to your
-     * collection at once (ie without allocating all those intermediate
-     * collections).
      *
      * @param c the collection of elements to add
      * @return the union of this collection and the given collection of elements
      * @see Collection#addAll(java.util.Collection)
      */
-    default PCollection<E> addAll(PCollection<? extends E> c) {
-        PCollection<E> result = this;
-        for (E e : c) {
-            result = result.add(e);
-        }
-        return result;
-    }
+    PCollection<E> addAll(PCollection<? extends E> c);
 
+    /**
+     * Returns a view of this collection as an immutable instance of the
+     * corresponding standard Java collection type.
+     *
+     * @return an immutable {@code Collection}
+     */
+    Collection<E> asJavaCollection();
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The {@code Spliterator} will be both {@linkplain Spliterator#SIZED sized}
+     * and {@linkplain Spliterator#IMMUTABLE immutable}.
+     */
     @Override
     default Spliterator<E> spliterator() {
-        return Spliterators.spliterator(iterator(), size(), 0);
+        return Spliterators.spliterator(
+                iterator(),
+                size(),
+                Spliterator.IMMUTABLE);
     }
 
     /**
@@ -157,63 +139,5 @@ public interface PCollection<E> extends Iterable<E> {
      */
     default Stream<E> parallelStream() {
         return StreamSupport.stream(spliterator(), true);
-    }
-
-    default Collection<E> asJavaCollection() {
-        return new CollectionAdapter<>(this);
-    }
-}
-
-final class CollectionAdapter<E> extends AbstractCollection<E> {
-
-    private final PCollection<E> wrapped;
-
-    public CollectionAdapter(PCollection<E> wrapped) {
-        this.wrapped = wrapped;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return wrapped.isEmpty();
-    }
-
-    @Override
-    public int size() {
-        return wrapped.size();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return wrapped.contains(o);
-    }
-
-    @Override
-    public Iterator<E> iterator() {
-        return wrapped.iterator();
-    }
-
-    @Override
-    public void forEach(Consumer<? super E> action) {
-        wrapped.forEach(action);
-    }
-
-    @Override
-    public Spliterator<E> spliterator() {
-        return wrapped.spliterator();
-    }
-
-    @Override
-    public Stream<E> stream() {
-        return wrapped.stream();
-    }
-
-    @Override
-    public Stream<E> parallelStream() {
-        return wrapped.parallelStream();
-    }
-
-    @Override
-    public String toString() {
-        return wrapped.toString();
     }
 }
