@@ -1,6 +1,9 @@
 package io.coronet.pico;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * An implementation of the {@code PMap} interface based on a Hash Array Mapped
@@ -63,7 +66,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
         @SuppressWarnings("unchecked")
         V notFound = (V) NOT_FOUND;
 
-        return (root.get(key.hashCode(), 0, key, notFound) == NOT_FOUND);
+        return (root.get(key.hashCode(), 0, key, notFound) != NOT_FOUND);
     }
 
     @Override
@@ -72,7 +75,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             throw new NullPointerException("key");
         }
         if (root == null) {
-            return null;
+            return defaultValue;
         }
 
         return root.get(key.hashCode(), 0, key, defaultValue);
@@ -97,8 +100,8 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
         }
 
         PutResult<K, V> result = localRoot.put(
-                0,
                 key.hashCode(),
+                0,
                 new Entry<>(key, value));
 
         if (localRoot == result.root) {
@@ -115,22 +118,38 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
 
     @Override
     public PMapImpl<K, V> remove(Object key) {
-        // TODO: Implement me.
-        return null;
-    }
+        if (key == null) {
+            throw new NullPointerException("key");
+        }
 
-    @Override
-    public Iterable<K> keySet() {
-        // TODO: Implement me.
-        return null;
+        if (root == null) {
+            // We're already the empty map.
+            return this;
+        }
+
+        Node<K, V> newRoot = root.remove(key.hashCode(), 0, key);
+
+        if (root == newRoot) {
+            // No change.
+            return this;
+        }
+
+        return new PMapImpl<>(size - 1, newRoot);
     }
 
     @Override
     public Iterable<Entry<K, V>> entrySet() {
-        // TODO: Implement me.
-        return null;
-    }
+        if (size == 0) {
+            return Collections.<Entry<K, V>>emptySet();
+        }
 
+        return new Iterable<Entry<K, V>>() {
+            @Override
+            public Iterator<Entry<K, V>> iterator() {
+                return root.iterator();
+            }
+        };
+    }
 
     /**
      * A node in the HAMT.
@@ -167,7 +186,14 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
          * @param key the full key object
          * @return a copy of this node with the given value removed
          */
-        Node<K, V> remove(int hash, int level, K key);
+        Node<K, V> remove(int hash, int level, Object key);
+
+        /**
+         * Returns an iterator over the elements stored under this node.
+         *
+         * @return an iterator
+         */
+        Iterator<Entry<K, V>> iterator();
     }
 
     /**
@@ -190,7 +216,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
                 // Nothing with this hash prefix in the trie at all.
                 return defaultValue;
 
-            } if (e.getClass() == Entry.class) {
+            } else if (e.getClass() == Entry.class) {
 
                 // Found a key/value pair. Check if the key matches.
                 @SuppressWarnings("unchecked")
@@ -304,7 +330,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
         }
 
         @Override
-        public Node<K, V> remove(int hash, int level, K key) {
+        public Node<K, V> remove(int hash, int level, Object key) {
 
             int index = sliceHashBits(hash, level);
             Object e = get(index);
@@ -355,6 +381,47 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             }
         }
 
+        @Override
+        public Iterator<Entry<K, V>> iterator() {
+            return new Iterator<Entry<K, V>>() {
+
+                private final Iterator<?> iter = iter();
+                private Iterator<Entry<K, V>> sub;
+
+                @Override
+                public boolean hasNext() {
+                    if (sub != null && sub.hasNext()) {
+                        return true;
+                    }
+                    return iter.hasNext();
+                }
+
+                @Override
+                public Entry<K, V> next() {
+                    if (sub != null && sub.hasNext()) {
+                        return sub.next();
+                    }
+
+                    Object o = iter.next();
+                    if (o.getClass() == Entry.class) {
+
+                        @SuppressWarnings("unchecked")
+                        Entry<K, V> e = (Entry<K, V>) o;
+                        return e;
+
+                    } else {
+
+                        @SuppressWarnings("unchecked")
+                        Node<K, V> n = (Node<K, V>) o;
+                        sub = n.iterator();
+                        assert (sub.hasNext());
+                        return sub.next();
+
+                    }
+                }
+            };
+        }
+
         /**
          * Gets the object at the given (virtual) index in this node.
          *
@@ -399,6 +466,11 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
          * @return a copy of this node with the given element removed
          */
         protected abstract Node<K, V> remove(int index);
+
+        /**
+         * @return an iterator over the children of this node
+         */
+        protected abstract Iterator<?> iter();
     }
 
     /**
@@ -518,6 +590,11 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             return new SparseNode<>(bitmap ^ bit, newArray);
         }
 
+        @Override
+        protected Iterator<?> iter() {
+            return Arrays.asList(array).iterator();
+        }
+
         /**
          * Return the number of bits in the bitmap less than or equal to the
          * given bit; this is the physical index of the corresponding entry in
@@ -627,6 +704,40 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
 
             return new SparseNode<>(bitmap, newArray);
         }
+
+        @Override
+        protected Iterator<?> iter() {
+            return new Iterator<Object>() {
+
+                private int index;
+
+                {
+                    advanceIndex();
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return (index < 32);
+                }
+
+                @Override
+                public Object next() {
+                    if (index >= 32) {
+                        throw new NoSuchElementException();
+                    }
+
+                    Object result = array[index];
+                    advanceIndex();
+                    return result;
+                }
+
+                private void advanceIndex() {
+                    while (index < 32 && array[index] == null) {
+                        index += 1;
+                    }
+                }
+            };
+        }
     }
 
     /**
@@ -638,13 +749,13 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
     private static final class HashCollisionNode<K, V> implements Node<K, V> {
 
         private final int hash;
-        private final Object[] array;
+        private final Entry<K, V>[] array;
 
         /**
          * @param hash the hash of all the keys in this node
          * @param array the array of key/value pairs
          */
-        public HashCollisionNode(int hash, Object[] array) {
+        public HashCollisionNode(int hash, Entry<K, V>[] array) {
             this.hash = hash;
             this.array = array;
         }
@@ -655,8 +766,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             // If the hash matches, do a linear scan for a matching key.
             if (hash == this.hash) {
                 for (int i = 0; i < array.length; ++i) {
-                    @SuppressWarnings("unchecked")
-                    Entry<K, V> entry = (Entry<K, V>) array[i];
+                    Entry<K, V> entry = array[i];
                     if (key.equals(entry.getKey())) {
                         return entry.getValue();
                     }
@@ -686,12 +796,13 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
 
             // If it's one of the keys we have already, replace it.
             for (int i = 0; i < array.length; ++i) {
-                if (entry.getKey().equals(array[i])) {
-                    if (array[i + 1] == entry.getValue()) {
+                Entry<K, V> existing = array[i];
+                if (entry.getKey().equals(existing.getKey())) {
+                    if (entry.getValue() == existing.getValue()) {
                         return new PutResult<>(this, false);
                     }
 
-                    Object[] newArray = array.clone();
+                    Entry<K, V>[] newArray = array.clone();
                     newArray[i] = entry;
 
                     Node<K, V> node = new HashCollisionNode<>(hash, newArray);
@@ -700,26 +811,27 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             }
 
             // Otherwise new key: extend the array.
-            Object[] newArray = cloneAndAppend(array, entry);
+            Entry<K, V>[] newArray = cloneAndAppend(array, entry);
 
             Node<K, V> node = new HashCollisionNode<>(hash, newArray);
             return new PutResult<>(node, true);
         }
 
         @Override
-        public Node<K, V> remove(int hash, int level, K key) {
+        public Node<K, V> remove(int hash, int level, Object key) {
 
             // Look for the key and remove it if found.
             if (hash == this.hash) {
-                for (int i = 0; i < array.length; i += 2) {
-                    if (key.equals(array[i])) {
+                for (int i = 0; i < array.length; ++i) {
+                    Entry<K, V> existing = array[i];
+                    if (key.equals(existing.getKey())) {
 
                         if (array.length == 1) {
                             // Node will be empty after we remove this entry.
                             return null;
                         }
 
-                        Object[] newArray = cloneAndRemove(array, i);
+                        Entry<K, V>[] newArray = cloneAndRemove(array, i);
                         return new HashCollisionNode<>(hash, newArray);
 
                     }
@@ -728,6 +840,11 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
 
             // Key not found; retain existing value(s).
             return this;
+        }
+
+        @Override
+        public Iterator<Entry<K, V>> iterator() {
+            return Arrays.asList(array).iterator();
         }
     }
 
@@ -762,8 +879,8 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
      * @param value the value to append
      * @return a copy of the array with the value appended
      */
-    private static Object[] cloneAndAppend(Object[] array, Object value) {
-        Object[] clone = Arrays.copyOf(array, array.length + 1);
+    private static <T> T[] cloneAndAppend(T[] array, T value) {
+        T[] clone = Arrays.copyOf(array, array.length + 1);
         clone[array.length] = value;
         return clone;
     }
@@ -797,9 +914,8 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
      * @param index the index of the element to remove
      * @return the cloned array
      */
-    private static Object[] cloneAndRemove(Object[] array, int index) {
-        Object[] clone = new Object[array.length - 1];
-        System.arraycopy(array, 0, clone, 0, index);
+    private static <T> T[] cloneAndRemove(T[] array, int index) {
+        T[] clone = Arrays.copyOf(array, array.length - 1);
         System.arraycopy(array, index, clone, index, clone.length - index);
         return clone;
     }
@@ -825,7 +941,11 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
         if (existingHash == newHash) {
 
             // Hash collision!
-            Object[] newArray = new Object[] { existingEntry, newEntry };
+            @SuppressWarnings("unchecked")
+            Entry<K, V>[] newArray = new Entry[] {
+                    existingEntry,
+                    newEntry };
+
             return new HashCollisionNode<>(newHash, newArray);
 
         } else {

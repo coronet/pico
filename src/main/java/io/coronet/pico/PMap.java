@@ -13,6 +13,15 @@ import java.util.function.Consumer;
 public interface PMap<K, V> {
 
     /**
+     * Returns the empty map.
+     *
+     * @return the empty map
+     */
+    public static <K, V> PMap<K, V> empty() {
+        return PMapImpl.empty();
+    }
+
+    /**
      * Returns the number of entries in this map.
      *
      * @return the number of entries in this map

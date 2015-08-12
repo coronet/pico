@@ -10,9 +10,9 @@ import java.util.Collection;
 public interface PQueue<E> extends PList<E> {
 
     /**
-     * Creates an empty queue.
+     * Returns the empty queue.
      *
-     * @return an empty queue
+     * @return the empty queue
      */
     public static <E> PQueue<E> empty() {
         return PQueueImpl.<E>empty();

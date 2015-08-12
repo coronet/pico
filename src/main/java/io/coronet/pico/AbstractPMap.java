@@ -32,6 +32,9 @@ public abstract class AbstractPMap<K, V, This extends AbstractPMap<K, V, This>>
         return result;
     }
 
+    @Override
+    public abstract This remove(Object key);
+
     protected This self() {
         @SuppressWarnings("unchecked")
         This self = (This) this;
@@ -60,7 +63,7 @@ public abstract class AbstractPMap<K, V, This extends AbstractPMap<K, V, This>>
             if (!iter.hasNext()) {
                 return builder.append('}').toString();
             }
-            builder.append('}').append(' ');
+            builder.append(',').append(' ');
         }
     }
 
