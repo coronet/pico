@@ -214,7 +214,7 @@ public class PMapTest {
 
         for (PMap.Entry<String, Integer> entry : map.entrySet()) {
             Assert.assertEquals(entry.getKey(), entry.getValue().toString());
-            seen.add(entry.getKey());
+            Assert.assertTrue(seen.add(entry.getKey()));
         }
 
         Assert.assertEquals(12345, seen.size());

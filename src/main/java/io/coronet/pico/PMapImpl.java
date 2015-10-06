@@ -154,7 +154,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
     /**
      * A node in the HAMT.
      */
-    private static interface Node<K, V> {
+    private static interface Node<K, V> extends Iterable<Entry<K, V>> {
 
         /**
          * Gets an element from this node.
@@ -187,13 +187,6 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
          * @return a copy of this node with the given value removed
          */
         Node<K, V> remove(int hash, int level, Object key);
-
-        /**
-         * Returns an iterator over the elements stored under this node.
-         *
-         * @return an iterator
-         */
-        Iterator<Entry<K, V>> iterator();
     }
 
     /**
@@ -381,47 +374,6 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             }
         }
 
-        @Override
-        public Iterator<Entry<K, V>> iterator() {
-            return new Iterator<Entry<K, V>>() {
-
-                private final Iterator<?> iter = iter();
-                private Iterator<Entry<K, V>> sub;
-
-                @Override
-                public boolean hasNext() {
-                    if (sub != null && sub.hasNext()) {
-                        return true;
-                    }
-                    return iter.hasNext();
-                }
-
-                @Override
-                public Entry<K, V> next() {
-                    if (sub != null && sub.hasNext()) {
-                        return sub.next();
-                    }
-
-                    Object o = iter.next();
-                    if (o.getClass() == Entry.class) {
-
-                        @SuppressWarnings("unchecked")
-                        Entry<K, V> e = (Entry<K, V>) o;
-                        return e;
-
-                    } else {
-
-                        @SuppressWarnings("unchecked")
-                        Node<K, V> n = (Node<K, V>) o;
-                        sub = n.iterator();
-                        assert (sub.hasNext());
-                        return sub.next();
-
-                    }
-                }
-            };
-        }
-
         /**
          * Gets the object at the given (virtual) index in this node.
          *
@@ -466,11 +418,71 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
          * @return a copy of this node with the given element removed
          */
         protected abstract Node<K, V> remove(int index);
+    }
 
-        /**
-         * @return an iterator over the children of this node
-         */
-        protected abstract Iterator<?> iter();
+    private static abstract class AbstractNodeIterator<K, V>
+            implements Iterator<Entry<K, V>> {
+
+        private Iterator<Entry<K, V>> sub;
+        private Entry<K, V> next;
+
+        @Override
+        public boolean hasNext() {
+            if (next != null) {
+                return true;
+            }
+
+            next = next0();
+            return (next != null);
+        }
+
+        @Override
+        public Entry<K, V> next() {
+            Entry<K, V> result = next;
+            if (result != null) {
+                next = null;
+                return result;
+            }
+
+            result = next0();
+            if (result == null) {
+                throw new NoSuchElementException();
+            }
+
+            return result;
+        }
+
+        private Entry<K, V> next0() {
+            if (sub != null) {
+                if (sub.hasNext()) {
+                    return sub.next();
+                } else {
+                    sub = null;
+                }
+            }
+
+            Object result = next1();
+            if (result == null) {
+
+                return null;
+
+            } else if (result instanceof Entry<?, ?>) {
+
+                @SuppressWarnings("unchecked")
+                Entry<K, V> erased = (Entry<K, V>) result;
+                return erased;
+
+            } else {
+
+                @SuppressWarnings("unchecked")
+                Node<K, V> erased = (Node<K, V>) result;
+                sub = erased.iterator();
+                return sub.next();
+
+            }
+        }
+
+        protected abstract Object next1();
     }
 
     /**
@@ -502,6 +514,26 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
         public SparseNode(int bitmap, Object[] array) {
             this.bitmap = bitmap;
             this.array = array;
+        }
+
+        @Override
+        public Iterator<Entry<K, V>> iterator() {
+            return new AbstractNodeIterator<K, V>() {
+
+                private int index;
+
+                @Override
+                protected Object next1() {
+                    if (index >= array.length) {
+                        return null;
+                    }
+
+                    Object result = array[index];
+                    index += 1;
+
+                    return result;
+                }
+            };
         }
 
         @Override
@@ -590,11 +622,6 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             return new SparseNode<>(bitmap ^ bit, newArray);
         }
 
-        @Override
-        protected Iterator<?> iter() {
-            return Arrays.asList(array).iterator();
-        }
-
         /**
          * Return the number of bits in the bitmap less than or equal to the
          * given bit; this is the physical index of the corresponding entry in
@@ -625,6 +652,26 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
         public FullNode(Object[] array, int count) {
             this.array = array;
             this.count = count;
+        }
+
+        @Override
+        public Iterator<Entry<K,V>> iterator() {
+            return new AbstractNodeIterator<K, V>() {
+
+                private int index;
+
+                @Override
+                protected Object next1() {
+                    while (index < 32) {
+                        int i = index++;
+                        if (array[i] != null) {
+                            return array[i];
+                        }
+                    }
+
+                    return null;
+                }
+            };
         }
 
         @Override
@@ -703,40 +750,6 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             }
 
             return new SparseNode<>(bitmap, newArray);
-        }
-
-        @Override
-        protected Iterator<?> iter() {
-            return new Iterator<Object>() {
-
-                private int index;
-
-                {
-                    advanceIndex();
-                }
-
-                @Override
-                public boolean hasNext() {
-                    return (index < 32);
-                }
-
-                @Override
-                public Object next() {
-                    if (index >= 32) {
-                        throw new NoSuchElementException();
-                    }
-
-                    Object result = array[index];
-                    advanceIndex();
-                    return result;
-                }
-
-                private void advanceIndex() {
-                    while (index < 32 && array[index] == null) {
-                        index += 1;
-                    }
-                }
-            };
         }
     }
 
