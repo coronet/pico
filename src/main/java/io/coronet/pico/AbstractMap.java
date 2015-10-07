@@ -1,21 +1,20 @@
 package io.coronet.pico;
 
 import java.util.Iterator;
-import java.util.Map;
 
 /**
- * Abstract implementation of the {@code PMap} interface.
+ * Abstract implementation of the {@code Map} interface.
  *
  * @see java.util.AbstractMap
  */
-public abstract class AbstractPMap<K, V, This extends AbstractPMap<K, V, This>>
-        implements PMap<K, V> {
+public abstract class AbstractMap<K, V, This extends AbstractMap<K, V, This>>
+        implements Map<K, V> {
 
     @Override
     public abstract This put(K key, V value);
 
     @Override
-    public This putAll(PMap<? extends K, ? extends V> map) {
+    public This putAll(Map<? extends K, ? extends V> map) {
         This result = self();
         for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
             result = result.put(entry.getKey(), entry.getValue());
@@ -24,9 +23,9 @@ public abstract class AbstractPMap<K, V, This extends AbstractPMap<K, V, This>>
     }
 
     @Override
-    public This putAll(Map<? extends K, ? extends V> map) {
+    public This putAll(java.util.Map<? extends K, ? extends V> map) {
         This result = self();
-        for (Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
+        for (java.util.Map.Entry<? extends K, ? extends V> entry : map.entrySet()) {
             result = result.put(entry.getKey(), entry.getValue());
         }
         return result;
@@ -84,11 +83,11 @@ public abstract class AbstractPMap<K, V, This extends AbstractPMap<K, V, This>>
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof PMap<?, ?>)) {
+        if (!(obj instanceof Map<?, ?>)) {
             return false;
         }
 
-        PMap<?, ?> that = (PMap<?, ?>) obj;
+        Map<?, ?> that = (Map<?, ?>) obj;
         if (this.size() != that.size()) {
             return false;
         }

@@ -1,18 +1,16 @@
 package io.coronet.pico;
 
-import java.util.AbstractCollection;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * Abstract implementation of the {@code PCollection} interface.
+ * Abstract implementation of the {@code Collection} interface.
  */
-public abstract class AbstractPCollection
-        <E, This extends AbstractPCollection<E, This>>
-                implements PCollection<E> {
+public abstract class AbstractCollection
+        <E, This extends AbstractCollection<E, This>>
+                implements Collection<E> {
 
     @Override
     public abstract int size();
@@ -36,7 +34,7 @@ public abstract class AbstractPCollection
     }
 
     @Override
-    public boolean containsAll(Collection<?> c) {
+    public boolean containsAll(java.util.Collection<?> c) {
         for (Object o : c) {
             if (!contains(o)) {
                 return false;
@@ -46,7 +44,7 @@ public abstract class AbstractPCollection
     }
 
     @Override
-    public boolean containsAll(PCollection<?> c) {
+    public boolean containsAll(Collection<?> c) {
         for (Object o : c) {
             if (!contains(o)) {
                 return false;
@@ -59,7 +57,7 @@ public abstract class AbstractPCollection
     public abstract This add(E e);
 
     @Override
-    public This addAll(Collection<? extends E> c) {
+    public This addAll(java.util.Collection<? extends E> c) {
         This result = self();
         for (E e : c) {
             result = result.add(e);
@@ -68,7 +66,7 @@ public abstract class AbstractPCollection
     }
 
     @Override
-    public This addAll(PCollection<? extends E> c) {
+    public This addAll(Collection<? extends E> c) {
         This result = self();
         for (E e : c) {
             result = result.add(e);
@@ -80,7 +78,7 @@ public abstract class AbstractPCollection
     public abstract Iterator<E> iterator();
 
     @Override
-    public Collection<E> asJavaCollection() {
+    public java.util.Collection<E> asJavaCollection() {
         return new CollectionAdapter<>(this);
     }
 
@@ -113,11 +111,11 @@ public abstract class AbstractPCollection
     }
 
     private static final class CollectionAdapter<E>
-            extends AbstractCollection<E> {
+            extends java.util.AbstractCollection<E> {
 
-        private final PCollection<E> wrapped;
+        private final Collection<E> wrapped;
 
-        public CollectionAdapter(PCollection<E> wrapped) {
+        public CollectionAdapter(Collection<E> wrapped) {
             this.wrapped = wrapped;
         }
 

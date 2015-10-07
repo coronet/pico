@@ -4,51 +4,50 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PQueueTest {
+public class VectorTest {
 
     @Test
     public void test_empty_isEmpty() {
-        PList<String> vec = PQueueImpl.empty();
+        List<String> vec = Vector.empty();
         Assert.assertTrue(vec.isEmpty());
     }
 
     @Test
     public void test_empty_size() {
-        PList<Integer> vec = PQueueImpl.empty();
+        List<Integer> vec = Vector.empty();
         Assert.assertEquals(0, vec.size());
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_getMinus1() {
-        PQueueImpl.empty().get(-1);
+        Vector.empty().get(-1);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_get0() {
-        PQueueImpl.empty().get(0);
+        Vector.empty().get(0);
     }
 
     @Test
     public void test_empty_iteratorHasNext() {
-        Iterator<Exception> iter = PQueueImpl.<Exception>empty().iterator();
+        Iterator<Exception> iter = Vector.<Exception>empty().iterator();
         Assert.assertFalse(iter.hasNext());
     }
 
     @Test(expected = NoSuchElementException.class)
     public void test_empty_iteratorNext() {
-        Iterator<String> iter = PQueueImpl.<String>empty().iterator();
+        Iterator<String> iter = Vector.<String>empty().iterator();
         iter.next();
     }
 
     @Test
     public void test_empty_contains() {
-        PList<Double> vec = PQueueImpl.empty();
+        List<Double> vec = Vector.empty();
         Assert.assertFalse(vec.contains(null));
         Assert.assertFalse(vec.contains("Hello World"));
     }
@@ -56,31 +55,31 @@ public class PQueueTest {
 
     @Test
     public void test_empty_indexOf() {
-        PList<String> vec = PQueueImpl.empty();
+        List<String> vec = Vector.empty();
         Assert.assertEquals(-1, vec.indexOf("Hello World"));
     }
 
     @Test
     public void test_empty_indexOfNull() {
-        PList<String> vec = PQueueImpl.empty();
+        List<String> vec = Vector.empty();
         Assert.assertEquals(-1, vec.indexOf(null));
     }
 
     @Test
     public void test_empty_lastIndexOf() {
-        PList<String> vec = PQueueImpl.empty();
+        List<String> vec = Vector.empty();
         Assert.assertEquals(-1, vec.lastIndexOf("Hello World"));
     }
 
     @Test
     public void test_empty_lastIndexOfNull() {
-        PList<String> vec = PQueueImpl.empty();
+        List<String> vec = Vector.empty();
         Assert.assertEquals(-1, vec.lastIndexOf(null));
     }
 
     @Test
     public void test_empty_asJavaCollection() {
-        List<String> list = PQueueImpl.<String>empty().asJavaCollection();
+        java.util.List<String> list = Vector.<String>empty().asJavaCollection();
 
         Assert.assertTrue(list.isEmpty());
         Assert.assertEquals(0, list.size());
@@ -95,14 +94,14 @@ public class PQueueTest {
 
     @Test
     public void test_empty_singleton() {
-        PList<Boolean> vec = PQueueImpl.empty();
-        Assert.assertSame(vec, PQueueImpl.empty());
+        List<Boolean> vec = Vector.empty();
+        Assert.assertSame(vec, Vector.empty());
     }
 
     @Test
     public void test_empty_add() {
-        PList<String> empty = PQueueImpl.empty();
-        PList<String> vec = empty.add("Hello World");
+        List<String> empty = Vector.empty();
+        List<String> vec = empty.add("Hello World");
 
         Assert.assertTrue(empty.isEmpty());
         Assert.assertFalse(vec.isEmpty());
@@ -127,18 +126,18 @@ public class PQueueTest {
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_setMinus1() {
-        PQueueImpl.empty().set(-1, "boo");
+        Vector.empty().set(-1, "boo");
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_set1() {
-        PQueueImpl.empty().set(1, true);
+        Vector.empty().set(1, true);
     }
 
     @Test
     public void test_empty_set0() {
-        PList<String> empty = PQueueImpl.empty();
-        PList<String> vec = empty.set(0, "Hello World");
+        List<String> empty = Vector.empty();
+        List<String> vec = empty.set(0, "Hello World");
 
         Assert.assertTrue(empty.isEmpty());
         Assert.assertFalse(vec.isEmpty());
@@ -149,12 +148,12 @@ public class PQueueTest {
 
     @Test
     public void test_empty_toString() {
-        Assert.assertEquals("[]", PQueueImpl.empty().toString());
+        Assert.assertEquals("[]", Vector.empty().toString());
     }
 
     @Test
     public void test_addMany() {
-        PList<Integer> vec = PQueueImpl.empty();
+        List<Integer> vec = Vector.empty();
         for (int i = 0; i < 12345; ++i) {
             vec = vec.add(i);
         }
@@ -175,7 +174,7 @@ public class PQueueTest {
 
     @Test
     public void test_setMany() {
-        PList<Integer> vec = PQueueImpl.empty();
+        List<Integer> vec = Vector.empty();
         vec = vec.addAll(Arrays.asList(new Integer[12345]));
 
         Assert.assertEquals(12345, vec.size());
@@ -191,7 +190,7 @@ public class PQueueTest {
 
     @Test
     public void test_null() {
-        PList<Double> vec = PQueueImpl.empty();
+        List<Double> vec = Vector.empty();
         vec = vec.add(1.0).add(null).add(2.0).add(null);
 
         Assert.assertEquals(4, vec.size());
@@ -204,7 +203,7 @@ public class PQueueTest {
 
     @Test
     public void test_plist_addAll() {
-        PList<Integer> vec = PQueueImpl.empty();
+        List<Integer> vec = Vector.empty();
         vec = vec.addAll(Arrays.asList(0, 1, 2));
         vec = vec.addAll(vec);
 
@@ -216,7 +215,7 @@ public class PQueueTest {
 
     @Test
     public void test_toString() {
-        PList<Integer> vec = PQueueImpl.<Integer>empty()
+        List<Integer> vec = Vector.<Integer>empty()
             .addAll(Arrays.asList(1, 2, 3, 4));
 
         Assert.assertEquals("[1, 2, 3, 4]", vec.toString());
@@ -226,20 +225,20 @@ public class PQueueTest {
     public void test_hashCode() {
         Assert.assertEquals(
                 Collections.emptyList().hashCode(),
-                PQueueImpl.<Integer>empty().hashCode());
+                Vector.<Integer>empty().hashCode());
 
         Assert.assertEquals(
                 Collections.singletonList(1).hashCode(),
-                PQueueImpl.<Integer>empty().add(1).hashCode());
+                Vector.<Integer>empty().add(1).hashCode());
 
         Assert.assertEquals(
                 Arrays.asList(1, 2).hashCode(),
-                PQueueImpl.<Integer>empty()
+                Vector.<Integer>empty()
                         .addAll(Arrays.asList(1, 2))
                         .hashCode());
 
-        List<Integer> list = new ArrayList<>(123);
-        PList<Integer> plist = PQueueImpl.empty();
+        java.util.List<Integer> list = new ArrayList<>(123);
+        List<Integer> plist = Vector.empty();
 
         for (int i = 0; i < 123; ++i) {
             list.add(i);
@@ -253,20 +252,20 @@ public class PQueueTest {
     public void test_null_hashCode() {
         Assert.assertEquals(
                 Collections.singletonList(null).hashCode(),
-                PQueue.empty().add(null).hashCode());
+                Vector.empty().add(null).hashCode());
     }
 
     @Test
     public void test_empty_equals() {
-        Assert.assertEquals(PQueueImpl.empty(), PQueueImpl.empty());
+        Assert.assertEquals(Vector.empty(), Vector.empty());
     }
 
     @Test
     public void test_equals() {
-        PList<Integer> one = PQueue.<Integer>empty()
+        List<Integer> one = Vector.<Integer>empty()
                 .addAll(Arrays.asList(1, 2, 3));
 
-        PList<Integer> two = PQueue.<Integer>empty()
+        List<Integer> two = Vector.<Integer>empty()
                 .add(1).add(2).add(3);
 
         Assert.assertEquals(one, two);
@@ -279,36 +278,36 @@ public class PQueueTest {
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_first() {
-        PQueue.empty().first();
+        Vector.empty().first();
     }
 
     @Test
     public void test_empty_first0() {
-        Assert.assertSame(PQueue.empty(), PQueue.empty().first(0));
+        Assert.assertSame(Vector.empty(), Vector.empty().first(0));
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_firstMinus1() {
-        PQueue.empty().add(1).first(-1);
+        Vector.empty().add(1).first(-1);
     }
 
     @Test
     public void test_firstOne() {
-        PList<?> one = PQueue.empty().add(1);
+        List<?> one = Vector.empty().add(1);
         Assert.assertEquals(one, one.first(1));
     }
 
     @Test
     public void test_firstN() {
         for (int size = 0; size < 1230; ++size) {
-            PList<Integer> list = PQueue.empty();
+            List<Integer> list = Vector.empty();
 
             for (int i = 0; i < size; ++i) {
                 list = list.add(i);
             }
 
             for (int i = 0; i <= size; ++i) {
-                PList<Integer> first = list.first(i);
+                List<Integer> first = list.first(i);
                 Assert.assertEquals(i, first.size());
 
                 for (int j = 0; j < i; ++j) {
@@ -320,45 +319,45 @@ public class PQueueTest {
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_firstOne() {
-        PQueue.empty().first(1);
+        Vector.empty().first(1);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_last() {
-        PQueue.empty().last();
+        Vector.empty().last();
     }
 
     @Test
     public void test_one_last() {
-        Assert.assertEquals(1, PQueue.empty().add(1).last());
+        Assert.assertEquals(1, Vector.empty().add(1).last());
     }
 
     @Test
     public void test_two_last() {
-        Assert.assertEquals(2, PQueue.empty().add(1).add(2).last());
+        Assert.assertEquals(2, Vector.empty().add(1).add(2).last());
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_lastMinus1() {
-        PQueue.empty().add(1).last(-1);
+        Vector.empty().add(1).last(-1);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void test_empty_lastOne() {
-        PQueue.empty().last(1);
+        Vector.empty().last(1);
     }
 
     @Test
     public void test_lastN() {
         for (int size = 0; size < 1230; ++size) {
-            PList<Integer> list = PQueue.empty();
+            List<Integer> list = Vector.empty();
 
             for (int i = 0; i < size; ++i) {
                 list = list.add(i);
             }
 
             for (int i = 0; i <= size; ++i) {
-                PList<Integer> last = list.last(i);
+                List<Integer> last = list.last(i);
                 Assert.assertEquals(i, last.size());
 
                 for (int j = 1; j <= i; ++j) {

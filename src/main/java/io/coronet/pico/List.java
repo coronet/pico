@@ -1,7 +1,5 @@
 package io.coronet.pico;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Spliterator;
 import java.util.Spliterators;
 
@@ -9,17 +7,7 @@ import java.util.Spliterators;
  * A persistent list - an immutable version of {@code java.util.List}. Mutator
  * methods return a new list with the given modification made.
  */
-public interface PList<E> extends PCollection<E> {
-
-    /**
-     * Creates a new list whose {@link #add(Object)} method appends elements
-     * to the list.
-     *
-     * @return a new, empty list that can be appended to
-     */
-    public static <E> PList<E> appendable() {
-        return PQueue.empty();
-    }
+public interface List<E> extends Collection<E> {
 
     /**
      * Gets the index of the first occurrence of the given object in this list,
@@ -27,7 +15,7 @@ public interface PList<E> extends PCollection<E> {
      *
      * @param o the object to search for
      * @return the first index of the object, or -1 if not found
-     * @see List#indexOf(Object)
+     * @see java.util.List#indexOf(Object)
      */
     int indexOf(Object o);
 
@@ -37,7 +25,7 @@ public interface PList<E> extends PCollection<E> {
      *
      * @param o the object to search for
      * @return the last index of the object, or -1 if not found
-     * @see List#lastIndexOf(Object)
+     * @see java.util.List#lastIndexOf(Object)
      */
     int lastIndexOf(Object o);
 
@@ -47,7 +35,7 @@ public interface PList<E> extends PCollection<E> {
      * @param index the index
      * @return the element at the given index
      * @throws IndexOutOfBoundsException if index is out of bounds
-     * @see List#get(int)
+     * @see java.util.List#get(int)
      */
     E get(int index);
 
@@ -68,7 +56,7 @@ public interface PList<E> extends PCollection<E> {
      * @return a list containing only the first n elements
      * @throws IndexOutOfBoundsException if {@code n < 0} or {@code n >= size()}
      */
-    PList<E> first(int n);
+    List<E> first(int n);
 
     /**
      * Returns the last element in this list.
@@ -87,15 +75,15 @@ public interface PList<E> extends PCollection<E> {
      * @return a list containing on the last n elements
      * @throws IndexOutOfBoundsException if {@code n < 0} or {@code n >= size()}
      */
-    PList<E> last(int n);
+    List<E> last(int n);
 
     /**
      * Adds an element to this list. The position where the element will be
-     * inserted is implementation-dependent. A {@link PStack} inserts elements
-     * at the head of the list, a {@link PQueue} inserts elements at the tail.
+     * inserted is implementation-dependent. A {@link LinkedList} inserts elements
+     * at the head of the list, a {@link Vector} inserts elements at the tail.
      */
     @Override
-    PList<E> add(E e);
+    List<E> add(E e);
 
     /**
      * {@inheritDoc}
@@ -106,7 +94,7 @@ public interface PList<E> extends PCollection<E> {
      * of {@link #add(Object)}).
      */
     @Override
-    PList<E> addAll(Collection<? extends E> c);
+    List<E> addAll(java.util.Collection<? extends E> c);
 
     /**
      * {@inheritDoc}
@@ -117,7 +105,7 @@ public interface PList<E> extends PCollection<E> {
      * of {@link #add(Object)}).
      */
     @Override
-    PList<E> addAll(PCollection<? extends E> c);
+    List<E> addAll(Collection<? extends E> c);
 
     /**
      * "Sets" the element at the given index, returning a new list with the
@@ -127,9 +115,9 @@ public interface PList<E> extends PCollection<E> {
      * @param e the new value for the index
      * @return a new list with the element replaced
      * @throws IndexOutOfBoundsException if index is out of bounds
-     * @see List#set(int, Object)
+     * @see java.util.List#set(int, Object)
      */
-    PList<E> set(int index, E e);
+    List<E> set(int index, E e);
 
     /**
      * "Removes" a single element from the head of this list, returning a new
@@ -141,7 +129,7 @@ public interface PList<E> extends PCollection<E> {
      * @throws IndexOutOfBoundsException if the list is empty
      * @see #last(int)
      */
-    PList<E> remove();
+    List<E> remove();
 
     /**
      * "Removes" {@code n} elements from the head of this list, returning a new
@@ -154,10 +142,10 @@ public interface PList<E> extends PCollection<E> {
      * @throws IndexOutOfBoundsException if {@code n < 0} or {@code n >= size()}
      * @see #last(int)
      */
-    PList<E> remove(int n);
+    List<E> remove(int n);
 
     @Override
-    List<E> asJavaCollection();
+    java.util.List<E> asJavaCollection();
 
     /**
      * {@inheritDoc}

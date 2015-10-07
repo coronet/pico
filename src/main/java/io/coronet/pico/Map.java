@@ -1,7 +1,6 @@
 package io.coronet.pico;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -10,15 +9,15 @@ import java.util.function.Consumer;
  * A persistent map. Similar to a {@link java.util.Map}, but modifications
  * return a new map instead of mutating this one.
  */
-public interface PMap<K, V> {
+public interface Map<K, V> {
 
     /**
      * Returns the empty map.
      *
      * @return the empty map
      */
-    public static <K, V> PMap<K, V> empty() {
-        return PMapImpl.empty();
+    public static <K, V> Map<K, V> empty() {
+        return MapImpl.empty();
     }
 
     /**
@@ -73,7 +72,7 @@ public interface PMap<K, V> {
      * @return the new map
      * @throws NullPointerException if key is null
      */
-    PMap<K, V> put(K key, V value);
+    Map<K, V> put(K key, V value);
 
     /**
      * Creates a new map with the given mappings added.
@@ -82,7 +81,7 @@ public interface PMap<K, V> {
      * @return the new map
      * @throws NullPointerException if map is null
      */
-    PMap<K, V> putAll(PMap<? extends K, ? extends V> map);
+    Map<K, V> putAll(Map<? extends K, ? extends V> map);
 
     /**
      * Creates a new map with the given mappings added.
@@ -91,7 +90,7 @@ public interface PMap<K, V> {
      * @return the new map
      * @throws NullPointerException if map is null or contains a null key
      */
-    PMap<K, V> putAll(Map<? extends K, ? extends V> map);
+    Map<K, V> putAll(java.util.Map<? extends K, ? extends V> map);
 
     /**
      * Creates a new map with the mapping for the given key removed.
@@ -99,7 +98,7 @@ public interface PMap<K, V> {
      * @param key the key to remove
      * @return the new map
      */
-    PMap<K, V> remove(Object key);
+    Map<K, V> remove(Object key);
 
     /**
      * Returns an iterable view of the entries in this map.

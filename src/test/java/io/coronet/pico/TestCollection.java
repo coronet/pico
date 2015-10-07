@@ -7,8 +7,8 @@ import java.util.Iterator;
  * A "test" that ensures the set of methods that must be implemented by a
  * class extending AbstractPCollection doesn't grow.
  */
-public class TestPCollection<T>
-        extends AbstractPCollection<T, TestPCollection<T>> {
+public class TestCollection<T>
+        extends AbstractCollection<T, TestCollection<T>> {
 
     @Override
     public int size() {
@@ -16,7 +16,7 @@ public class TestPCollection<T>
     }
 
     @Override
-    public TestPCollection<T> add(T e) {
+    public TestCollection<T> add(T e) {
         return this;
     }
 

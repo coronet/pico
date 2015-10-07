@@ -7,38 +7,38 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class PMapTest {
+public class MapTest {
 
     @Test
     public void test_empty_isEmpty() {
-        Assert.assertTrue(PMap.empty().isEmpty());
+        Assert.assertTrue(Map.empty().isEmpty());
     }
 
     @Test
     public void test_empty_size() {
-        Assert.assertEquals(0, PMap.empty().size());
+        Assert.assertEquals(0, Map.empty().size());
     }
 
     @Test(expected = NullPointerException.class)
     public void test_empty_containsKey_null() {
-        PMap.empty().containsKey(null);
+        Map.empty().containsKey(null);
     }
 
     @Test
     public void test_empty_containsKey() {
-        PMap<String, Integer> empty = PMap.empty();
+        Map<String, Integer> empty = Map.empty();
         Assert.assertFalse(empty.containsKey("Hello"));
         Assert.assertFalse(empty.containsKey(1));
     }
 
     @Test(expected = NullPointerException.class)
     public void test_empty_get_null() {
-        PMap.empty().get(null);
+        Map.empty().get(null);
     }
 
     @Test
     public void test_empty_get() {
-        PMap<String, Integer> empty = PMap.empty();
+        Map<String, Integer> empty = Map.empty();
 
         Assert.assertNull(empty.get("Hello"));
         Assert.assertNull(empty.get(1));
@@ -48,12 +48,12 @@ public class PMapTest {
 
     @Test(expected = NullPointerException.class)
     public void test_empty_remove_null() {
-        PMap.empty().remove(null);
+        Map.empty().remove(null);
     }
 
     @Test
     public void test_empty_remove() {
-        PMap<String, Integer> empty = PMap.empty();
+        Map<String, Integer> empty = Map.empty();
 
         Assert.assertSame(empty, empty.remove("Hello"));
         Assert.assertSame(empty, empty.remove(1));
@@ -61,7 +61,7 @@ public class PMapTest {
 
     @Test
     public void test_empty_keySet() {
-        PMap<String, Integer> empty = PMap.empty();
+        Map<String, Integer> empty = Map.empty();
         Iterable<String> entries = empty.keySet();
         Assert.assertNotNull(entries);
 
@@ -73,11 +73,11 @@ public class PMapTest {
 
     @Test
     public void test_empty_entrySet() {
-        PMap<String, Integer> empty = PMap.empty();
-        Iterable<PMap.Entry<String, Integer>> entries = empty.entrySet();
+        Map<String, Integer> empty = Map.empty();
+        Iterable<Map.Entry<String, Integer>> entries = empty.entrySet();
         Assert.assertNotNull(entries);
 
-        Iterator<PMap.Entry<String, Integer>> iter = entries.iterator();
+        Iterator<Map.Entry<String, Integer>> iter = entries.iterator();
 
         Assert.assertNotNull(iter);
         Assert.assertFalse(iter.hasNext());
@@ -85,18 +85,18 @@ public class PMapTest {
 
     @Test
     public void test_empty_forEach() {
-        PMap.empty().forEach((e) -> { Assert.fail("Unexpected action!"); });
-        PMap.empty().forEach((k, v) -> { Assert.fail("Unexpected action!"); });
+        Map.empty().forEach((e) -> { Assert.fail("Unexpected action!"); });
+        Map.empty().forEach((k, v) -> { Assert.fail("Unexpected action!"); });
     }
 
     @Test
     public void test_empty_toString() {
-        Assert.assertEquals("{}", PMap.empty().toString());
+        Assert.assertEquals("{}", Map.empty().toString());
     }
 
     @Test
     public void test_put() {
-        PMap<String, String> map = PMap.<String, String>empty()
+        Map<String, String> map = Map.<String, String>empty()
                 .put("Hello", "World")
                 .put("foo", "bar")
                 .put("bogus", "monkeys");
@@ -119,12 +119,12 @@ public class PMapTest {
 
     @Test(expected = NullPointerException.class)
     public void test_put_nullKey() {
-        PMap.empty().put(null, "OogBoog");
+        Map.empty().put(null, "OogBoog");
     }
 
     @Test
     public void test_put_nullValue() {
-        PMap<String, String> map = PMap.<String, String>empty()
+        Map<String, String> map = Map.<String, String>empty()
                 .put("Hello", null);
 
         Assert.assertFalse(map.isEmpty());
@@ -139,7 +139,7 @@ public class PMapTest {
 
     @Test
     public void test_put_overwrite() {
-        PMap<String, String> map = PMap.<String, String>empty()
+        Map<String, String> map = Map.<String, String>empty()
                 .put("Hello", "World")
                 .put("Hello", "Something Else");
 
@@ -150,16 +150,16 @@ public class PMapTest {
 
     @Test
     public void test_put_overwriteSame() {
-        PMap<String, String> map = PMap.<String, String>empty()
+        Map<String, String> map = Map.<String, String>empty()
                 .put("Hello", "World");
-        PMap<String, String> map2 = map.put("Hello", "World");
+        Map<String, String> map2 = map.put("Hello", "World");
 
         Assert.assertSame(map, map2);
     }
 
     @Test
     public void test_put_lots() {
-        PMap<String, Integer> map = PMap.empty();
+        Map<String, Integer> map = Map.empty();
         for (int i = 0; i < 12345; ++i) {
             map = map.put(Integer.toString(i), i);
         }
@@ -170,7 +170,7 @@ public class PMapTest {
             Assert.assertEquals((Integer) i, map.get(Integer.toString(i)));
         }
 
-        PMap<String, Integer> map2 = map;
+        Map<String, Integer> map2 = map;
         for (int i = 0; i < 127; ++i) {
             map2 = map2.put(Integer.toString(i), i);
         }
@@ -180,14 +180,14 @@ public class PMapTest {
 
     @Test
     public void test_entrySet() {
-        PMap<String, String> map = PMap.<String, String>empty()
+        Map<String, String> map = Map.<String, String>empty()
                 .put("Hello", "World")
                 .put("oog", "boog");
 
         boolean seenHello = false;
         boolean seenOog = false;
 
-        for (PMap.Entry<String, String> entry : map.entrySet()) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
             if ("Hello".equals(entry.getKey())) {
                 Assert.assertEquals("World", entry.getValue());
                 seenHello = true;
@@ -205,14 +205,14 @@ public class PMapTest {
 
     @Test
     public void test_entrySet_lots() {
-        PMap<String, Integer> map = PMap.empty();
+        Map<String, Integer> map = Map.empty();
         for (int i = 0; i < 12345; ++i) {
             map = map.put(Integer.toString(i), i);
         }
 
         Set<String> seen = new TreeSet<>();
 
-        for (PMap.Entry<String, Integer> entry : map.entrySet()) {
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
             Assert.assertEquals(entry.getKey(), entry.getValue().toString());
             Assert.assertTrue(seen.add(entry.getKey()));
         }

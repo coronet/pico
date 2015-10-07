@@ -1,6 +1,5 @@
 package io.coronet.pico;
 
-import java.util.Collection;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -11,14 +10,14 @@ import java.util.stream.StreamSupport;
  * {@link java.util.Collection} whose mutator methods return a new collection
  * rather than modifying this one.
  */
-public interface PCollection<E> extends Iterable<E> {
+public interface Collection<E> extends Iterable<E> {
 
     /**
      * Checks if this collection is empty. The default implementation checks
      * whether the size of this collection is zero.
      *
      * @return true if this collection is empty, false otherwise
-     * @see Collection#isEmpty()
+     * @see java.util.Collection#isEmpty()
      */
     default boolean isEmpty() {
         return (size() == 0);
@@ -28,7 +27,7 @@ public interface PCollection<E> extends Iterable<E> {
      * Returns the size of this collection.
      *
      * @return the number of elements in this collection
-     * @see Collection#size()
+     * @see java.util.Collection#size()
      */
     int size();
 
@@ -37,7 +36,7 @@ public interface PCollection<E> extends Iterable<E> {
      *
      * @param o the object to look for
      * @return true if this collection contains the object
-     * @see Collection#contains(Object)
+     * @see java.util.Collection#contains(Object)
      */
     boolean contains(Object o);
 
@@ -47,9 +46,9 @@ public interface PCollection<E> extends Iterable<E> {
      * @param c the collection of elements
      * @return true if this collection contains all elements, false otherwise
      * @throws NullPointerException if {@code c} is null
-     * @see Collection#containsAll(Collection)
+     * @see java.util.Collection#containsAll(java.util.Collection)
      */
-    boolean containsAll(Collection<?> c);
+    boolean containsAll(java.util.Collection<?> c);
 
     /**
      * Checks if this collection contains <em>all</em> of the given elements.
@@ -57,9 +56,9 @@ public interface PCollection<E> extends Iterable<E> {
      * @param c the collection of elements
      * @return true if this collection contains all elements, false otherwise
      * @throws NullPointerException if {@code c} is null
-     * @see Collection#containsAll(Collection)
+     * @see java.util.Collection#containsAll(java.util.Collection)
      */
-    boolean containsAll(PCollection<?> c);
+    boolean containsAll(Collection<?> c);
 
     /**
      * "Adds" an element to this collection, returning a new collection
@@ -72,9 +71,9 @@ public interface PCollection<E> extends Iterable<E> {
      *
      * @param e the element to add
      * @return a new collection containing the new element
-     * @see Collection#add(Object)
+     * @see java.util.Collection#add(Object)
      */
-    PCollection<E> add(E e);
+    Collection<E> add(E e);
 
     /**
      * "Adds" all of the given elements to this collection, returning a new
@@ -83,9 +82,9 @@ public interface PCollection<E> extends Iterable<E> {
      *
      * @param c the collection of elements to add
      * @return the union of this collection and the given collection of elements
-     * @see Collection#addAll(java.util.Collection)
+     * @see java.util.Collection#addAll(java.util.Collection)
      */
-    PCollection<E> addAll(Collection<? extends E> c);
+    Collection<E> addAll(java.util.Collection<? extends E> c);
 
     /**
      * "Adds" all of the given elements to this collection, returning a new
@@ -94,23 +93,25 @@ public interface PCollection<E> extends Iterable<E> {
      *
      * @param c the collection of elements to add
      * @return the union of this collection and the given collection of elements
-     * @see Collection#addAll(java.util.Collection)
+     * @see java.util.Collection#addAll(java.util.Collection)
      */
-    PCollection<E> addAll(PCollection<? extends E> c);
+    Collection<E> addAll(Collection<? extends E> c);
 
     /**
      * Returns a view of this collection as an immutable instance of the
      * corresponding standard Java collection type.
      *
-     * @return an immutable {@code Collection}
+     * @return an immutable {@code java.util.Collection}
      */
-    Collection<E> asJavaCollection();
+    java.util.Collection<E> asJavaCollection();
 
     /**
      * {@inheritDoc}
      * <p>
      * The {@code Spliterator} will be both {@linkplain Spliterator#SIZED sized}
      * and {@linkplain Spliterator#IMMUTABLE immutable}.
+     *
+     * @see java.util.Collection#spliterator()
      */
     @Override
     default Spliterator<E> spliterator() {
@@ -124,7 +125,7 @@ public interface PCollection<E> extends Iterable<E> {
      * Returns a sequential {@code Stream} with this collection as its source.
      *
      * @return a sequential stream
-     * @see Collection#stream()
+     * @see java.util.Collection#stream()
      */
     default Stream<E> stream() {
         return StreamSupport.stream(spliterator(), false);
@@ -135,7 +136,7 @@ public interface PCollection<E> extends Iterable<E> {
      * source.
      *
      * @return a possibly parallel stream
-     * @see Collection#parallelStream()
+     * @see java.util.Collection#parallelStream()
      */
     default Stream<E> parallelStream() {
         return StreamSupport.stream(spliterator(), true);

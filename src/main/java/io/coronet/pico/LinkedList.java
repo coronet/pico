@@ -1,11 +1,10 @@
 package io.coronet.pico;
 
-import java.util.Collection;
-
 /**
- * A persistent stack: a list that supports "adding" at the head.
+ * A persistent list that supports "adding" at the head. Suitable for use as a
+ * stack.
  */
-public interface PStack<E> extends PList<E> {
+public interface LinkedList<E> extends List<E> {
 
     /**
      * Peeks at the top of the stack (aka the first element of the list).
@@ -19,10 +18,10 @@ public interface PStack<E> extends PList<E> {
     }
 
     @Override
-    PStack<E> first(int n);
+    LinkedList<E> first(int n);
 
     @Override
-    PStack<E> last(int n);
+    LinkedList<E> last(int n);
 
     /**
      * "Pushes" an element onto the stack, returning a new stack with the new
@@ -32,7 +31,7 @@ public interface PStack<E> extends PList<E> {
      * @return a new stack with the element pushed on top
      * @see #add(Object)
      */
-    default PStack<E> push(E e) {
+    default LinkedList<E> push(E e) {
         return add(e);
     }
 
@@ -41,7 +40,7 @@ public interface PStack<E> extends PList<E> {
      * returning a new stack with the element prepended.
      */
     @Override
-    PStack<E> add(E e);
+    LinkedList<E> add(E e);
 
     /**
      * "Adds" the given elements, in order, to the beginning of this list
@@ -51,7 +50,7 @@ public interface PStack<E> extends PList<E> {
      * on the stack.
      */
     @Override
-    PStack<E> addAll(Collection<? extends E> c);
+    LinkedList<E> addAll(java.util.Collection<? extends E> c);
 
     /**
      * "Adds" the given elements, in order, to the beginning of this list
@@ -61,10 +60,10 @@ public interface PStack<E> extends PList<E> {
      * on the stack.
      */
     @Override
-    PStack<E> addAll(PCollection<? extends E> c);
+    LinkedList<E> addAll(Collection<? extends E> c);
 
     @Override
-    PStack<E> set(int index, E e);
+    LinkedList<E> set(int index, E e);
 
     /**
      * "Pops" an element off of this stack, returning a new stack with the
@@ -74,13 +73,13 @@ public interface PStack<E> extends PList<E> {
      * @throws IndexOutOfBoundsException if the stack is empty
      * @see #remove()
      */
-    default PStack<E> pop() {
+    default LinkedList<E> pop() {
         return remove();
     }
 
     @Override
-    PStack<E> remove();
+    LinkedList<E> remove();
 
     @Override
-    PStack<E> remove(int n);
+    LinkedList<E> remove(int n);
 }

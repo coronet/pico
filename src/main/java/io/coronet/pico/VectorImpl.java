@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * A persistent queue - AKA a persistent list that supports efficient adding to
+ * A persistent vector - AKA a persistent list that supports efficient adding to
  * the end. The implementation is based on Clojure's {@code PersistentVector}.
  * <p>
  * "Most" elements are stored in order in the leaf nodes of a 32-ary tree, which
@@ -15,18 +15,18 @@ import java.util.NoSuchElementException;
  * to the tail, which is then periodically "flushed" into the tree when it
  * grows large enough.
  */
-final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
-        implements PQueue<E> {
+final class VectorImpl<E> extends AbstractList<E, VectorImpl<E>>
+        implements Vector<E> {
 
-    private static final PQueueImpl<Object> EMPTY =
-            new PQueueImpl<>(0, 0, null, 0, new Object[0]);
+    private static final VectorImpl<Object> EMPTY =
+            new VectorImpl<>(0, 0, null, 0, new Object[0]);
 
     /**
-     * @return the empty queue
+     * @return the empty vector
      */
-    public static <T> PQueueImpl<T> empty() {
+    public static <T> VectorImpl<T> empty() {
         @SuppressWarnings("unchecked")
-        PQueueImpl<T> cast = (PQueueImpl<T>) EMPTY;
+        VectorImpl<T> cast = (VectorImpl<T>) EMPTY;
         return cast;
     }
 
@@ -39,13 +39,13 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     private final Object[] tail;
 
     /**
-     * @param offset the offset of the first element of this queue
-     * @param totalSize the total size of this queue
-     * @param treeRoot the root node of the tree portion of this queue
-     * @param treeDepth the depth of the tree portion of this queue
-     * @param tail the tail of the queue
+     * @param offset the offset of the first element of this vector
+     * @param totalSize the total size of this vector
+     * @param treeRoot the root node of the tree portion of this vector
+     * @param treeDepth the depth of the tree portion of this vector
+     * @param tail the tail of the vector
      */
-    private PQueueImpl(
+    private VectorImpl(
             int offset,
             int totalSize,
             Object[] treeRoot,
@@ -62,7 +62,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     @Override
     public int size() {
         // We may have some nulls at the beginning of the tree if elements have
-        // been "removed" from the head of the queue; subtract them out from
+        // been "removed" from the head of the vector; subtract them out from
         // the total size of the data structure to get the user-facing size.
         return (totalSize - offset);
     }
@@ -74,7 +74,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
         }
 
         // We may have some nulls at the beginning of the tree if elements have
-        // been "removed" from the head of the queue; add them in to get the
+        // been "removed" from the head of the vector; add them in to get the
         // real index in the data structure.
 
         int realIndex = index + offset;
@@ -101,7 +101,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     }
 
     @Override
-    public PQueueImpl<E> first(int n) {
+    public VectorImpl<E> first(int n) {
         int size = size();
         if (n < 0 || n > size) {
             throw new IndexOutOfBoundsException();
@@ -123,7 +123,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
 
             // Easy case - just squish the tail.
             Object[] newTail = Arrays.copyOf(tail, newSize & 0x1F);
-            return new PQueueImpl<>(
+            return new VectorImpl<>(
                     offset,
                     newSize,
                     treeRoot,
@@ -136,7 +136,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
             PruneRightResult result =
                     pruneRight(treeRoot, treeDepth, newSize - 1, true);
 
-            return new PQueueImpl<>(
+            return new VectorImpl<>(
                     offset,
                     newSize,
                     result.root,
@@ -147,7 +147,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     }
 
     @Override
-    public PQueueImpl<E> last(int n) {
+    public VectorImpl<E> last(int n) {
         int size = size();
         if (n < 0 || n > size) {
             throw new IndexOutOfBoundsException();
@@ -175,14 +175,14 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
                     tail.length);
             }
 
-            return new PQueueImpl<>(0, n, null, 0, newTail);
+            return new VectorImpl<>(0, n, null, 0, newTail);
 
         } else {
 
             PruneLeftResult result =
                     pruneLeft(treeRoot, treeDepth, newOffset, true);
 
-            return new PQueueImpl<>(
+            return new VectorImpl<>(
                     result.offset,
                     result.offset + n,
                     result.root,
@@ -192,7 +192,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     }
 
     @Override
-    public PQueueImpl<E> add(E e) {
+    public VectorImpl<E> add(E e) {
         if (totalSize == Integer.MAX_VALUE) {
             // Can't grow the underlying data structure any more.
             throw new OutOfMemoryError();
@@ -203,7 +203,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
             Object[] newTail = Arrays.copyOf(tail, tail.length + 1);
             newTail[tail.length] = e;
 
-            return new PQueueImpl<>(
+            return new VectorImpl<>(
                     offset,
                     totalSize + 1,
                     treeRoot,
@@ -222,9 +222,9 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
      * given element. Called by {@code add()} when the tail is full.
      *
      * @param e the element to add to the new tail
-     * @return a copy of this queue with the element appended
+     * @return a copy of this vector with the element appended
      */
-    private PQueueImpl<E> pushAndAdd(E e) {
+    private VectorImpl<E> pushAndAdd(E e) {
         Object[] newRoot;
         int newDepth = treeDepth;
 
@@ -250,7 +250,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
 
         }
 
-        return new PQueueImpl<>(
+        return new VectorImpl<>(
                 offset,
                 totalSize + 1,
                 newRoot,
@@ -266,7 +266,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
      * @return true if the tree portions if the data structure is full
      */
     private boolean isTreeFull() {
-        // The number of leaf nodes required to store the whole queue
+        // The number of leaf nodes required to store the whole vector
         // (each leaf node stores 32 elements).
         int requiredLeafNodes = (totalSize >>> 5);
 
@@ -278,7 +278,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     }
 
     @Override
-    public PQueueImpl<E> set(int index, E e) {
+    public VectorImpl<E> set(int index, E e) {
         if (index < 0 || index > size()) {
             throw new IndexOutOfBoundsException();
         }
@@ -294,7 +294,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
             // Easy case; it's in the tail.
             Object[] newTail = tail.clone();
             newTail[realIndex & 0x1F] = e;
-            return new PQueueImpl<>(
+            return new VectorImpl<>(
                     offset,
                     totalSize,
                     treeRoot,
@@ -305,7 +305,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
 
             // Slightly harder case - it's in the tree.
             Object[] newRoot = set(treeRoot, treeDepth, e, realIndex);
-            return new PQueueImpl<>(
+            return new VectorImpl<>(
                     offset,
                     totalSize,
                     newRoot,
@@ -386,7 +386,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
     }
 
     /**
-     * Gets the size of the tree for a queue of a given (total) size. The
+     * Gets the size of the tree for a vector of a given (total) size. The
      * tree stores elements in blocks of 32, and the tail always stores less
      * than or equal to 32 elements, so we round down from the total size to
      * find the number of elements in the tree.
@@ -752,7 +752,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
 
     /**
      * The result of a call to
-     * {@link PQueueImpl#pruneRight(Object[], int, int, boolean)}.
+     * {@link VectorImpl#pruneRight(Object[], int, int, boolean)}.
      */
     private static final class PruneRightResult {
 
@@ -767,7 +767,7 @@ final class PQueueImpl<E> extends AbstractPList<E, PQueueImpl<E>>
 
     /**
      * The result of a call to
-     * {@link PQueueImpl#pruneLeft(Object[], int, int, boolean)}.
+     * {@link VectorImpl#pruneLeft(Object[], int, int, boolean)}.
      */
     private static final class PruneLeftResult {
 

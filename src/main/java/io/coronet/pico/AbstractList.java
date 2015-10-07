@@ -1,8 +1,6 @@
 package io.coronet.pico;
 
-import java.util.AbstractList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -13,9 +11,9 @@ import java.util.stream.Stream;
  *
  * @see java.util.AbstractList
  */
-public abstract class AbstractPList<E, This extends AbstractPList<E, This>>
-        extends AbstractPCollection<E, This>
-        implements PList<E> {
+public abstract class AbstractList<E, This extends AbstractList<E, This>>
+        extends AbstractCollection<E, This>
+        implements List<E> {
 
     @Override
     public abstract int size();
@@ -94,7 +92,7 @@ public abstract class AbstractPList<E, This extends AbstractPList<E, This>>
     }
 
     @Override
-    public List<E> asJavaCollection() {
+    public java.util.List<E> asJavaCollection() {
         return new ListAdapter<>(this);
     }
 
@@ -112,11 +110,11 @@ public abstract class AbstractPList<E, This extends AbstractPList<E, This>>
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof PList<?>)) {
+        if (!(obj instanceof List<?>)) {
             return false;
         }
 
-        PList<?> that = (PList<?>) obj;
+        List<?> that = (List<?>) obj;
 
         Iterator<?> e1 = this.iterator();
         Iterator<?> e2 = that.iterator();
@@ -138,11 +136,12 @@ public abstract class AbstractPList<E, This extends AbstractPList<E, This>>
         return !(e1.hasNext() || e2.hasNext());
     }
 
-    private static final class ListAdapter<E> extends AbstractList<E> {
+    private static final class ListAdapter<E>
+            extends java.util.AbstractList<E> {
 
-        private final PList<E> wrapped;
+        private final List<E> wrapped;
 
-        public ListAdapter(PList<E> wrapped) {
+        public ListAdapter(List<E> wrapped) {
             this.wrapped = wrapped;
         }
 

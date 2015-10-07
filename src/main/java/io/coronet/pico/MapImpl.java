@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * An implementation of the {@code PMap} interface based on a Hash Array Mapped
+ * An implementation of the {@code Map} interface based on a Hash Array Mapped
  * Trie. Heavily influenced by Clojure's {@code PersistentHashMap}.
  * <p>
  * To avoid having to copy the entire index on modification, it is stored as
@@ -25,26 +25,26 @@ import java.util.NoSuchElementException;
  * leaves are used to deal with hash collisions - colliding entries are
  * linearly scanned to find the actually-matching element.
  */
-final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
+final class MapImpl<K, V> extends AbstractMap<K, V, MapImpl<K, V>>
+        implements Map<K, V> {
 
-    private static final PMapImpl<Object, Object> EMPTY =
-            new PMapImpl<>(0, null);
+    private static final MapImpl<Object, Object> EMPTY = new MapImpl<>(0, null);
 
     private static final Object NOT_FOUND = new Object();
 
     /**
      * @return the empty map
      */
-    public static <K, V> PMapImpl<K, V> empty() {
+    public static <K, V> MapImpl<K, V> empty() {
         @SuppressWarnings("unchecked")
-        PMapImpl<K, V> cast = (PMapImpl<K, V>) EMPTY;
+        MapImpl<K, V> cast = (MapImpl<K, V>) EMPTY;
         return cast;
     }
 
     private final int size;
     private final Node<K, V> root;
 
-    private PMapImpl(int size, Node<K, V> root) {
+    private MapImpl(int size, Node<K, V> root) {
         this.size = size;
         this.root = root;
     }
@@ -89,7 +89,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
      * @return the new map
      */
     @Override
-    public PMapImpl<K, V> put(K key, V value) {
+    public MapImpl<K, V> put(K key, V value) {
         if (key == null) {
             throw new NullPointerException("key");
         }
@@ -113,11 +113,11 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             newSize += 1;
         }
 
-        return new PMapImpl<>(newSize, result.root);
+        return new MapImpl<>(newSize, result.root);
     }
 
     @Override
-    public PMapImpl<K, V> remove(Object key) {
+    public MapImpl<K, V> remove(Object key) {
         if (key == null) {
             throw new NullPointerException("key");
         }
@@ -134,7 +134,7 @@ final class PMapImpl<K, V> extends AbstractPMap<K, V, PMapImpl<K, V>> {
             return this;
         }
 
-        return new PMapImpl<>(size - 1, newRoot);
+        return new MapImpl<>(size - 1, newRoot);
     }
 
     @Override

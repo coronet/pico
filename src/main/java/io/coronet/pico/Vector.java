@@ -1,35 +1,32 @@
 package io.coronet.pico;
 
-import java.util.Collection;
-
 /**
- * A {@code PList} who promises that its {@link #add(Object)} method will
- * append to the end of the list, making it straightforward to use as a
- * queue.
+ * A {@code List} who promises that its {@link #add(Object)} method will
+ * "append" to the end of the list, as in the standard {@code java.util.List}.
  */
-public interface PQueue<E> extends PList<E> {
+public interface Vector<E> extends List<E> {
 
     /**
-     * Returns the empty queue.
+     * Returns the empty vector.
      *
-     * @return the empty queue
+     * @return the empty vector
      */
-    public static <E> PQueue<E> empty() {
-        return PQueueImpl.<E>empty();
+    public static <E> Vector<E> empty() {
+        return VectorImpl.<E>empty();
     }
 
     @Override
-    PQueue<E> first(int n);
+    Vector<E> first(int n);
 
     @Override
-    PQueue<E> last(int n);
+    Vector<E> last(int n);
 
     /**
      * "Adds" an element to the end of this list/the tail of this queue,
      * returning a new list with the new element appended.
      */
     @Override
-    PQueue<E> add(E e);
+    Vector<E> add(E e);
 
     /**
      * "Adds" all of the elements in the given collection to the end of this
@@ -39,7 +36,7 @@ public interface PQueue<E> extends PList<E> {
      * list).
      */
     @Override
-    PQueue<E> addAll(Collection<? extends E> c);
+    Vector<E> addAll(java.util.Collection<? extends E> c);
 
     /**
      * "Adds" all of the elements in the given collection to the end of this
@@ -49,14 +46,14 @@ public interface PQueue<E> extends PList<E> {
      * list).
      */
     @Override
-    PQueue<E> addAll(PCollection<? extends E> c);
+    Vector<E> addAll(Collection<? extends E> c);
 
     @Override
-    PQueue<E> set(int index, E e);
+    Vector<E> set(int index, E e);
 
     @Override
-    PQueue<E> remove();
+    Vector<E> remove();
 
     @Override
-    PQueue<E> remove(int n);
+    Vector<E> remove(int n);
 }
